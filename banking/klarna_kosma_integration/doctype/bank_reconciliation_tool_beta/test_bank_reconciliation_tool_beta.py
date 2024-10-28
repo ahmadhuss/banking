@@ -19,11 +19,8 @@ from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import (
 )
 
 from banking.klarna_kosma_integration.doctype.bank_reconciliation_tool_beta.bank_reconciliation_tool_beta import (
-<<<<<<< HEAD
-=======
 	auto_reconcile_vouchers,
 	bulk_reconcile_vouchers,
->>>>>>> ea3fd7c (test: Multi Party Reconciliation)
 	create_journal_entry_bts,
 	create_payment_entry_bts,
 )
@@ -447,8 +444,6 @@ class TestBankReconciliationToolBeta(AccountsTestMixin, FrappeTestCase):
 			),
 		)
 
-<<<<<<< HEAD
-=======
 	def test_auto_reconciliation(self):
 		"""
 		Test auto reconciliation between a bank transaction and a payment entry.
@@ -543,7 +538,10 @@ class TestBankReconciliationToolBeta(AccountsTestMixin, FrappeTestCase):
 		self.assertEqual(je.accounts[1].party, si2.customer)
 		self.assertEqual(je.accounts[1].reference_type, "Sales Invoice")
 		self.assertEqual(je.accounts[1].reference_name, si2.name)
-		self.assertEqual(je.accounts[2].account, frappe.db.get_value("Bank Account", bt.bank_account, "account"))
+		self.assertEqual(
+			je.accounts[2].account,
+			frappe.db.get_value("Bank Account", bt.bank_account, "account"),
+		)
 		self.assertEqual(je.accounts[2].debit, 150)
 		self.assertEqual(je.total_debit, 150)
 		self.assertEqual(je.total_credit, 150)
@@ -556,7 +554,6 @@ class TestBankReconciliationToolBeta(AccountsTestMixin, FrappeTestCase):
 		self.assertEqual(si.outstanding_amount, 0)
 		self.assertEqual(si2.outstanding_amount, 100)
 
->>>>>>> ea3fd7c (test: Multi Party Reconciliation)
 
 def get_pe_references(vouchers: list):
 	return frappe.get_all(
