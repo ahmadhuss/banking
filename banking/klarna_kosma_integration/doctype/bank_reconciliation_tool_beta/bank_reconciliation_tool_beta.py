@@ -592,8 +592,8 @@ def get_matching_queries(
 				del kwargs["include_only_returns"]
 			queries.append(fn(**kwargs))
 	else:
-		fn = invoice_queries_map.get(invoice_dt)
-		queries.append(fn(**kwargs))
+		if fn := invoice_queries_map.get(invoice_dt):
+			queries.append(fn(**kwargs))
 
 	if "loan_disbursement" in document_types and is_withdrawal:
 		queries.append(get_ld_matching_query(bank_account, exact_match, transaction))

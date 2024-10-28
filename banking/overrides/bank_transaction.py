@@ -36,6 +36,22 @@ class CustomBankTransaction(BankTransaction):
 		if len(self.payment_entries) != pe_length_before:
 			self.save()  # runs on_update_after_submit
 
+	def validate_duplicate_references(self):
+		"""Make sure the same voucher is not allocated twice within the same Bank Transaction"""
+		if not self.payment_entries:
+			return
+
+		pe = []
+		for row in self.payment_entries:
+			reference = (row.payment_document, row.payment_entry)
+			if reference in pe:
+				frappe.throw(
+					_("{0} {1} is allocated twice in this Bank Transaction").format(
+						row.payment_document, row.payment_entry
+					)
+				)
+			pe.append(reference)
+
 	def validate_period_closing(self):
 		"""
 		Check if the Bank Transaction date is after the latest period closing date.
@@ -55,6 +71,16 @@ class CustomBankTransaction(BankTransaction):
 					"Due to Period Closing, you cannot reconcile unpaid vouchers with a Bank Transaction before {0}"
 				).format(frappe.format(latest_period_close_date, "Date"))
 			)
+
+	def update_allocated_amount(self):
+		self.allocated_amount = (
+			sum(p.allocated_amount for p in self.payment_entries)
+			if self.payment_entries
+			else 0.0
+		)
+		self.unallocated_amount = (
+			abs(flt(self.withdrawal) - flt(self.deposit)) - self.allocated_amount
+		)
 
 	def add_to_payment_entry(self, payment_doctype, payment_name):
 		"""Add the payment entry to the bank transaction"""
