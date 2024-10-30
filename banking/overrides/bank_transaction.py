@@ -73,13 +73,17 @@ class CustomBankTransaction(BankTransaction):
 			)
 
 	def update_allocated_amount(self):
-		self.allocated_amount = (
-			sum(p.allocated_amount for p in self.payment_entries)
-			if self.payment_entries
-			else 0.0
+		self.allocated_amount = round(
+			(
+				sum(p.allocated_amount for p in self.payment_entries)
+				if self.payment_entries
+				else 0.0
+			),
+			self.precision("allocated_amount"),
 		)
-		self.unallocated_amount = (
-			abs(flt(self.withdrawal) - flt(self.deposit)) - self.allocated_amount
+		self.unallocated_amount = round(
+			abs(flt(self.withdrawal) - flt(self.deposit)) - self.allocated_amount,
+			self.precision("unallocated_amount"),
 		)
 
 	def add_to_payment_entry(self, payment_doctype, payment_name):
@@ -101,7 +105,10 @@ class CustomBankTransaction(BankTransaction):
 	def reconcile_paid_vouchers(self, vouchers):
 		"""Reconcile paid vouchers with the Bank Transaction."""
 		for voucher in vouchers:
-			voucher_type, voucher_name = voucher["payment_doctype"], voucher["payment_name"]
+			voucher_type, voucher_name = (
+				voucher["payment_doctype"],
+				voucher["payment_name"],
+			)
 			if self.is_duplicate_reference(voucher_type, voucher_name):
 				continue
 
@@ -111,7 +118,10 @@ class CustomBankTransaction(BankTransaction):
 		"""Reconcile unpaid invoices with the Bank Transaction."""
 		invoices_to_bill = []
 		for voucher in vouchers:
-			voucher_type, voucher_name = voucher["payment_doctype"], voucher["payment_name"]
+			voucher_type, voucher_name = (
+				voucher["payment_doctype"],
+				voucher["payment_name"],
+			)
 			if self.is_duplicate_reference(voucher_type, voucher_name):
 				continue
 
@@ -141,7 +151,8 @@ class CustomBankTransaction(BankTransaction):
 				payment_name = self.make_pe_against_invoices(invoices_to_bill)
 
 			self.add_to_payment_entry(
-				"Journal Entry" if reconcile_multi_party else "Payment Entry", payment_name
+				"Journal Entry" if reconcile_multi_party else "Payment Entry",
+				payment_name,
 			)
 
 	def make_jv_against_invoices(self, invoices_to_bill: list) -> str:
@@ -222,7 +233,9 @@ class CustomBankTransaction(BankTransaction):
 		bank_account = frappe.db.get_value("Bank Account", self.bank_account, "account")
 		first_invoice = invoices_to_bill[0]
 		if first_invoice[DOCTYPE] == "Expense Claim":
-			from hrms.overrides.employee_payment_entry import get_payment_entry_for_employee
+			from hrms.overrides.employee_payment_entry import (
+				get_payment_entry_for_employee,
+			)
 
 			payment_entry = get_payment_entry_for_employee(
 				first_invoice[DOCTYPE],
@@ -433,7 +446,8 @@ def on_update_after_submit(doc, event):
 			symbol = frappe.db.get_value("Currency", doc.currency, "symbol")
 			frappe.throw(
 				msg=_("The Bank Transaction is over-allocated by {0} at row {1}.").format(
-					frappe.bold(f"{symbol} {str(abs(to_allocate))}"), frappe.bold(entry.idx)
+					frappe.bold(f"{symbol} {str(abs(to_allocate))}"),
+					frappe.bold(entry.idx),
 				),
 				title=_("Over Allocation"),
 			)
