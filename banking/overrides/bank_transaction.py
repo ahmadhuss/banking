@@ -73,17 +73,16 @@ class CustomBankTransaction(BankTransaction):
 			)
 
 	def update_allocated_amount(self):
-		self.allocated_amount = round(
-			(
-				sum(p.allocated_amount for p in self.payment_entries)
-				if self.payment_entries
-				else 0.0
-			),
-			self.precision("allocated_amount"),
+		allocated_amount = (
+			sum(p.allocated_amount for p in self.payment_entries)
+			if self.payment_entries
+			else 0.0
 		)
-		self.unallocated_amount = round(
-			abs(flt(self.withdrawal) - flt(self.deposit)) - self.allocated_amount,
-			self.precision("unallocated_amount"),
+		unallocated_amount = abs(flt(self.withdrawal) - flt(self.deposit)) - allocated_amount
+
+		self.allocated_amount = flt(allocated_amount, self.precision("allocated_amount"))
+		self.unallocated_amount = flt(
+			unallocated_amount, self.precision("unallocated_amount")
 		)
 
 	def add_to_payment_entry(self, payment_doctype, payment_name):
