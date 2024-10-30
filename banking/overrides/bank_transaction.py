@@ -80,9 +80,12 @@ class CustomBankTransaction(BankTransaction):
 		)
 		unallocated_amount = abs(flt(self.withdrawal) - flt(self.deposit)) - allocated_amount
 
-		self.allocated_amount = flt(allocated_amount, self.precision("allocated_amount"))
-		self.unallocated_amount = flt(
-			unallocated_amount, self.precision("unallocated_amount")
+		# Need to use db_set because these fiels don't allow update after submit in v14
+		self.db_set(
+			"allocated_amount", flt(allocated_amount, self.precision("allocated_amount"))
+		)
+		self.db_set(
+			"unallocated_amount", flt(unallocated_amount, self.precision("unallocated_amount"))
 		)
 
 	def add_to_payment_entry(self, payment_doctype, payment_name):
