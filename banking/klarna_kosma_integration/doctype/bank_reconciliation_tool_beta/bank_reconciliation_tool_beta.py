@@ -709,12 +709,8 @@ def get_ld_matching_query(bank_account, exact_match, transaction):
 		)
 		.where(loan_disbursement.docstatus == 1)
 		.where(loan_disbursement.clearance_date.isnull())
-<<<<<<< HEAD
 		.where(loan_disbursement.disbursement_account == bank_account)
-=======
-		.where(loan_disbursement.disbursement_account == common_filters.bank_account)
 		.limit(MAX_QUERY_RESULTS)
->>>>>>> 90ab122 (perf: set a hard limit on query results)
 	)
 
 	if exact_match:
@@ -762,12 +758,8 @@ def get_lr_matching_query(bank_account, exact_match, transaction):
 		)
 		.where(loan_repayment.docstatus == 1)
 		.where(loan_repayment.clearance_date.isnull())
-<<<<<<< HEAD
 		.where(loan_repayment.payment_account == bank_account)
-=======
-		.where(loan_repayment.payment_account == common_filters.bank_account)
 		.limit(MAX_QUERY_RESULTS)
->>>>>>> 90ab122 (perf: set a hard limit on query results)
 	)
 
 	if frappe.db.has_column("Loan Repayment", "repay_from_salary"):
