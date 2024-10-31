@@ -5,7 +5,23 @@ on:
   push:
     branches:
       - version-14
+<<<<<<< HEAD:.github/workflows/ci.yml
+=======
+      - version-15
+    paths-ignore:
+      - "**.css"
+      - "**.js"
+      - "**.md"
+      - "**.html"
+      - "**.csv"
+>>>>>>> ac49780 (chore: Avoid running server tests on irrelevant file changes):.github/workflows/server-tests.yml
   pull_request:
+    paths-ignore:
+      - "**.css"
+      - "**.js"
+      - "**.md"
+      - "**.html"
+      - "**.csv"
 
 concurrency:
   group: version-14-banking-${{ github.event.number }}
