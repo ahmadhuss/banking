@@ -14,12 +14,14 @@ class ExceptionHandler:
 	Log and throw error as received from Admin app.
 	"""
 
-	def __init__(self, exception):
+	def __init__(self, exception, account=None):
 		self.exception = exception
+		self.account = account
 		self.handle_error()
 
 	def handle_error(self):
 		if not isinstance(self.exception, requests.exceptions.HTTPError):
+			self.set_in_account(_("Something went wrong. Please retry in a while."))
 			frappe.log_error(title=_("Banking Error"), message=frappe.get_traceback())
 			raise
 
@@ -37,9 +39,12 @@ class ExceptionHandler:
 			return
 
 		frappe.log_error(title=_("Banking Error"), message=response.content)
+
+		message = _("Authentication error due to invalid credentials.")
+		self.set_in_account(message)
 		frappe.throw(
 			title=_("Banking Error"),
-			msg=_("Authentication error due to invalid credentials."),
+			msg=message,
 			exc=BankingError,
 		)
 
@@ -53,6 +58,7 @@ class ExceptionHandler:
 		message = (
 			content if isinstance(content, str) else "Authorization error due to invalid access."
 		)
+		self.set_in_account(message)
 		frappe.throw(title=_("Banking Error"), msg=_(message), exc=BankingError)
 
 	def handle_txt_html_error(self, response):
@@ -63,9 +69,12 @@ class ExceptionHandler:
 			return
 
 		frappe.log_error(title=_("Banking Error"), message=response.content)
+
+		message = _("Something went wrong. Please retry in a while.")
+		self.set_in_account(message)
 		frappe.throw(
 			title=_("Banking Error"),
-			msg=_("Something went wrong. Please retry in a while."),
+			msg=message,
 			exc=BankingError,
 		)
 
@@ -78,6 +87,7 @@ class ExceptionHandler:
 			message = response_data.get("exception") or _(
 				"The server has errored. Please retry in some time."
 			)
+			self.set_in_account(message)
 			frappe.throw(title=_("Banking Error"), msg=message, exc=BankingError)
 
 	def handle_admin_error(self, content):
@@ -92,12 +102,12 @@ class ExceptionHandler:
 			error_list = [f"{err.get('location')} - {self.get_msg(err)}" for err in errors]
 			message = _("Banking Action has failed due to the following error(s):")
 			message += "<br><ul><li>" + "</li><li>".join(error_list) + "</li></ul>"
-
+			self.set_in_account(message)
 			frappe.throw(title=_("Banking Error"), msg=message, exc=BankingError)
 		elif error_data.get("message"):
-			frappe.throw(
-				title=_("Banking Error"), msg=self.get_msg(error_data), exc=BankingError
-			)
+			message = self.get_msg(error_data)
+			self.set_in_account(message)
+			frappe.throw(title=_("Banking Error"), msg=message, exc=BankingError)
 
 	def get_msg(self, error: dict):
 		"""Add instructions to Kosma error messages."""
@@ -110,6 +120,14 @@ class ExceptionHandler:
 			msg += " " + info
 
 		return msg
+
+	def set_in_account(self, error: str):
+		"""Set error in Bank Account."""
+		if not self.account:
+			return
+
+		frappe.db.set_value("Bank Account", self.account, "error_message", error)
+		frappe.db.commit()  # seems required
 
 
 @frappe.whitelist()

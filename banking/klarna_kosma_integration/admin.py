@@ -127,7 +127,7 @@ class Admin:
 				if transaction.transaction_list:
 					create_bank_transactions(account, transaction.transaction_list, via_flow_api=True)
 		except Exception as exc:
-			ExceptionHandler(exc)
+			ExceptionHandler(exc, account=account)
 		finally:
 			set_session_state(session_id_short, transactions_value)
 
@@ -170,8 +170,11 @@ class Admin:
 
 				if transaction.transaction_list:
 					create_bank_transactions(account, transaction.transaction_list)
+
+			# Clear error message if any, on successful transaction sync
+			frappe.db.set_value("Bank Account", account, "error_message", None)
 		except Exception as exc:
-			ExceptionHandler(exc)
+			ExceptionHandler(exc, account=account)
 
 	def end_session(self, session_id: str, session_id_short: str) -> None:
 		self.request.end_session(session_id)

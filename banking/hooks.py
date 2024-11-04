@@ -183,7 +183,21 @@ kosma_custom_fields = {
 			insert_after="mask",
 			read_only=1,
 			translatable=0,
-		)
+		),
+		dict(
+			owner="Administrator",
+			fieldname="error_section",
+			fieldtype="Section Break",
+			insert_after="kosma_account_id",
+		),
+		dict(
+			owner="Administrator",
+			fieldname="error_message",
+			label="Error Message",
+			fieldtype="Small Text",
+			insert_after="error_section",
+			read_only=1,
+		),
 	],
 }
 
