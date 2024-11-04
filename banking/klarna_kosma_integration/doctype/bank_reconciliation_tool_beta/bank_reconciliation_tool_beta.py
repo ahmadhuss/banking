@@ -19,6 +19,9 @@ from erpnext.accounts.doctype.bank_transaction.bank_transaction import (
 from erpnext.accounts.utils import get_account_currency
 
 
+MAX_QUERY_RESULTS = 150
+
+
 class BankReconciliationToolBeta(Document):
 	pass
 
@@ -660,6 +663,7 @@ def get_bt_matching_query(exact_match, transaction, exact_party_match):
 		.where(bt.bank_account == transaction.bank_account)
 		.where(amount_condition)
 		.where(bt.docstatus == 1)
+		.limit(MAX_QUERY_RESULTS)
 	)
 
 	if exact_party_match:
@@ -706,6 +710,7 @@ def get_ld_matching_query(bank_account, exact_match, transaction):
 		.where(loan_disbursement.docstatus == 1)
 		.where(loan_disbursement.clearance_date.isnull())
 		.where(loan_disbursement.disbursement_account == bank_account)
+		.limit(MAX_QUERY_RESULTS)
 	)
 
 	if exact_match:
@@ -754,6 +759,7 @@ def get_lr_matching_query(bank_account, exact_match, transaction):
 		.where(loan_repayment.docstatus == 1)
 		.where(loan_repayment.clearance_date.isnull())
 		.where(loan_repayment.payment_account == bank_account)
+		.limit(MAX_QUERY_RESULTS)
 	)
 
 	if frappe.db.has_column("Loan Repayment", "repay_from_salary"):
@@ -830,6 +836,7 @@ def get_pe_matching_query(
 		.where(amount_condition)
 		.where(filter_by_date)
 		.orderby(pe.reference_date if cint(filter_by_reference_date) else pe.posting_date)
+		.limit(MAX_QUERY_RESULTS)
 	)
 
 	if frappe.flags.auto_reconcile_vouchers:
@@ -898,6 +905,7 @@ def get_je_matching_query(
 		.where(je.docstatus == 1)
 		.where(filter_by_date)
 		.orderby(je.cheque_date if cint(filter_by_reference_date) else je.posting_date)
+		.limit(MAX_QUERY_RESULTS)
 	)
 
 	if frappe.flags.auto_reconcile_vouchers:
@@ -947,6 +955,7 @@ def get_si_matching_query(exact_match, exact_party_match, currency):
 		.where(sip.account == Parameter("%(bank_account)s"))
 		.where(amount_condition)
 		.where(si.currency == currency)
+		.limit(MAX_QUERY_RESULTS)
 	)
 
 	if exact_party_match:
@@ -989,6 +998,7 @@ def get_unpaid_si_matching_query(
 		.where(sales_invoice.company == company)  # because we do not have bank account check
 		.where(sales_invoice.outstanding_amount != 0.0)
 		.where(sales_invoice.currency == currency)
+		.limit(MAX_QUERY_RESULTS)
 	)
 
 	if include_only_returns:
@@ -1046,6 +1056,7 @@ def get_pi_matching_query(exact_match, exact_party_match, currency):
 		.where(purchase_invoice.cash_bank_account == Parameter("%(bank_account)s"))
 		.where(amount_condition)
 		.where(purchase_invoice.currency == currency)
+		.limit(MAX_QUERY_RESULTS)
 	)
 
 	if exact_party_match:
@@ -1091,6 +1102,7 @@ def get_unpaid_pi_matching_query(
 		.where(purchase_invoice.outstanding_amount != 0.0)
 		.where(purchase_invoice.is_paid == 0)
 		.where(purchase_invoice.currency == currency)
+		.limit(MAX_QUERY_RESULTS)
 	)
 
 	if include_only_returns:
@@ -1143,6 +1155,7 @@ def get_unpaid_ec_matching_query(exact_match, exact_party_match, currency, compa
 		.where(expense_claim.company == company)
 		.where(outstanding_amount > 0.0)
 		.where(expense_claim.status == "Unpaid")
+		.limit(MAX_QUERY_RESULTS)
 	)
 
 	if exact_match:
